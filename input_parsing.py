@@ -2,6 +2,15 @@ import time
 
 
 class Data:
+    """
+    Contains data for use in the file
+
+    Attributes:
+        training_images (list): contains the images for the training set stored as rows of greyscale values, 28x28
+        training_labels (list): contains the labels for the training set
+        test_images (list): contains the images for the test set stored as rows of greyscale values, 28x28
+        test_labels (list): contains the labels for the test set
+    """
     image_bytes_read = 16  # get rid of header
     label_bytes_read = 8  # get rid of header
 
@@ -34,41 +43,37 @@ def next_img(read_image_file, read_label_file):
 
     return array, label
 
+start_time = time.time()
+
+# create array of labels and images
+f_image = open("MNIST/train-images.idx3-ubyte", "rb")
+f_label = open("MNIST/train-labels.idx1-ubyte", "rb")
+b_image = f_image.read()
+b_label = f_label.read()
+f_image.close()
+f_label.close()
+for i in range(60000):
+    colours, label = next_img(b_image, b_label)
+    Data.training_images.append(colours)
+    Data.training_labels.append(label)
+
+
+Data.image_bytes_read = 16  # get rid of header
+Data.label_bytes_read = 8 # get rid of header
+f_image = open("MNIST/t10k-images.idx3-ubyte", "rb")
+f_label = open("MNIST/t10k-labels.idx1-ubyte", "rb")
+b_image = f_image.read()
+b_label = f_label.read()
+f_image.close()
+f_label.close()
+for i in range(10000):
+    colours, label = next_img(b_image, b_label)
+    Data.test_images.append(colours)
+    Data.test_labels.append(label)
+
+print("Parsing images from file took %f seconds" % (time.time() - start_time))
 
 if __name__ == "__main__":
-    start_time = time.time()
-
-    # create array of labels and images
-    f_image = open("MNIST/train-images.idx3-ubyte", "rb")
-    f_label = open("MNIST/train-labels.idx1-ubyte", "rb")
-    b_image = f_image.read()
-    b_label = f_label.read()
-    f_image.close()
-    f_label.close()
-    for i in range(60000):
-        if i % 1000 == 0:
-            print("Parsing image %i of 60000" % i)
-        colours, label = next_img(b_image, b_label)
-        Data.training_images.append(colours)
-        Data.training_labels.append(label)
-
-
-    Data.image_bytes_read = 16  # get rid of header
-    Data.label_bytes_read = 8 # get rid of header
-    f_image = open("MNIST/t10k-images.idx3-ubyte", "rb")
-    f_label = open("MNIST/t10k-labels.idx1-ubyte", "rb")
-    b_image = f_image.read()
-    b_label = f_label.read()
-    f_image.close()
-    f_label.close()
-    for i in range(10000):
-        if i % 1000 == 0:
-            print("Parsing image %i of 10000" % i)
-        colours, label = next_img(b_image, b_label)
-        Data.test_images.append(colours)
-        Data.test_labels.append(label)
-
-    print("Parsing took %f seconds" % (time.time() - start_time))
 
     start_time = time.time()
     ftri = open("MNIST/train.images.txt", "w")
