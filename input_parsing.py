@@ -29,17 +29,19 @@ def next_img(read_image_file, read_label_file):
             array.append(
                 int(read_image_file[Data.image_bytes_read:Data.image_bytes_read + 1].hex(),
                     16
-                )  # read one byte, convert to hex, then int
+                )/225  # read one byte, convert to hex, then int, then reduce range to 0-1
             )
             Data.image_bytes_read += 1
 
 
     # labels
-    label = int(
+    label_num = int(
         read_label_file[Data.label_bytes_read:Data.label_bytes_read + 1].hex(),
         16
     )  # read one byte, convert to hex, then int
     Data.label_bytes_read += 1
+    label = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    label[label_num] = 1
 
     return array, label
 

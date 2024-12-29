@@ -3,6 +3,12 @@ import random
 from data import layer_list
 from data import learning_rate as lr
 
+import input_parsing
+training_images = input_parsing.Data.training_images
+training_labels = input_parsing.Data.training_labels
+test_images = input_parsing.Data.test_images
+test_labels = input_parsing.Data.test_labels
+
 
 class HiddenNeuron:
     """An individual neuron in a hidden layer"""
