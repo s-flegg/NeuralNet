@@ -20,7 +20,7 @@ class HiddenNeuron:
         :param activation_function: the activation function to be used
         :type weights: list
         :type bias: float
-        :type activation_function: function
+        :type activation_function: object
         """
         self.weights = weights
         self.bias = bias
@@ -48,6 +48,7 @@ class HiddenNeuron:
             sum(self.weights[i] * inputs[i] for i in range(len(self.weights)))
             + self.bias
         )
+        self.output = self.activation_function.run(self.output)
 
     def backward(self, neurons):
         """
@@ -88,7 +89,7 @@ class OutputNeuron(HiddenNeuron):
         :param activation_function: the activation function to be used
         :type weights: list
         :type bias: float
-        :type activation_function: function
+        :type activation_function: object
         """
         super().__init__(weights, bias, activation_function)
 
@@ -109,6 +110,22 @@ class OutputNeuron(HiddenNeuron):
 
         # update bias
         self.bias -= self.error * lr
+
+class ReLU:
+    @staticmethod
+    def run(x):
+        return max(0, x)
+    @staticmethod
+    def derivative(x):
+        return 1 if x > 0 else 0
+
+class Sigmoid:
+    @staticmethod
+    def run(x):
+        return 1 / (1 + pow(2.71828, -x))
+    @staticmethod
+    def derivative(x):
+        return Sigmoid.run(x) * (1 - Sigmoid.run(x))
 
 
 class Layer:
@@ -131,7 +148,7 @@ class Layer:
         :param output: if the layer is the output layer
         :type neuron_count: int
         :type input_count: int
-        :type activation_function: function
+        :type activation_function: object
         :type layer_number: int
         :type output: bool
         """
@@ -148,7 +165,7 @@ class Layer:
             for _ in range(neuron_count):
                 self.neurons.append(
                     OutputNeuron(
-                        weights=[random.uniform(-1, 1) for _ in range(input_count)],
+                        weights=[random.uniform(-0.05, 0.05) for _ in range(input_count)],
                         bias=random.uniform(-1, 1),
                         activation_function=activation_function,
                     )
@@ -157,7 +174,7 @@ class Layer:
             for _ in range(neuron_count):
                 self.neurons.append(
                     HiddenNeuron(
-                        weights=[random.uniform(-1, 1) for _ in range(input_count)],
+                        weights=[random.uniform(-0.05, 0.05) for _ in range(input_count)],
                         bias=random.uniform(-1, 1),
                         activation_function=activation_function,
                     )
@@ -180,7 +197,7 @@ class Layer:
 
         # start next layer
         if self.layer_number < len(layer_list) - 1:
-            layer_list[self.layer_number + 1].forward(self.neurons)
+            layer_list[self.layer_number + 1].forward([neuron.output for neuron in self.neurons])
 
     def backward(self, targets=None):
         """
@@ -207,6 +224,45 @@ class Layer:
         if self.layer_number > 0:
             layer_list[self.layer_number - 1].backward()
 
+def MSE(targets, outputs):
+    return sum(pow(targets[i] - outputs[i], 2) for i in range(len(targets)))
+
 
 if __name__ == "__main__":
-    pass
+    layer_list.append(Layer(64, 28*28, ReLU, 0))
+    layer_list.append(Layer(10, 64, Sigmoid, 1, output=True))
+
+    train_range = 60000
+    successes = 0
+    for i in range(train_range):
+        layer_list[0].forward(training_images[i])
+        # print(i)
+        #print([neuron.output for neuron in layer_list[-1].neurons])
+        #print(training_labels[i])
+        output = [neuron.output for neuron in layer_list[-1].neurons]
+        success = output.index(max(output)) == training_labels[i].index(1)
+        if success:
+            successes += 1
+        print(
+            str(i) + "    "
+            + str(MSE(training_labels[i], output)) + "    "
+            + str(success)
+        )
+        layer_list[-1].backward(training_labels[i])
+    print("%i out of %i images were classified correctly"%(successes,train_range))
+
+    test_Range = 10000
+    successes = 0
+    for i in range(test_Range):
+        layer_list[0].forward(test_images[i])
+        output = [neuron.output for neuron in layer_list[-1].neurons]
+        success = output.index(max(output)) == test_labels[i].index(1)
+        if success:
+            successes += 1
+        print(
+            str(i) + "    "
+            + str(MSE(test_labels[i], output)) + "    "
+            + str(success)
+        )
+    print("%i out of %i images were classified correctly"%(successes,test_Range))
+    print("Success rate: %f %%"%(successes/test_Range))
