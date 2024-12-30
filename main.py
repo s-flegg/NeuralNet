@@ -265,4 +265,4 @@ if __name__ == "__main__":
             + str(success)
         )
     print("%i out of %i images were classified correctly"%(successes,test_Range))
-    print("Success rate: %f %%"%(successes/test_Range))
+    print("Success rate: %f %%"%(successes/test_Range*100))
